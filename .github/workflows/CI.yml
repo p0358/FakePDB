@@ -17,7 +17,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Build (install LLVM)
+      if: ${{ runner.os == 'Windows' }}
+      run: ./build.ps1 -install_llvm
+
     - name: Build
+      if: ${{ runner.os != 'Windows' }}
       run: ./build.ps1
 
     - uses: actions/upload-artifact@v4

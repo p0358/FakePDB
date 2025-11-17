@@ -4,8 +4,11 @@
 # Config
 #
 
-$build_llvm = $false
-$generate_msvc = $false
+param (
+    [switch] $build_llvm = $false,
+    [switch] $install_llvm = $false,
+    [switch] $generate_msvc = $false
+)
 
 #
 # Set root dir
@@ -162,6 +165,23 @@ function Build-LLVM(){
     cmake --install "./~build/llvm_build"
 }
 
+function Install-LLVM(){
+    #$llvm_version = "$(llvm-cov --version)" -replace '[^\d]*(\d+(\.\d+){1,3})[^\d]*', '$1'
+    $llvm_version = "21.1.5"
+    $url = "https://github.com/llvm/llvm-project/releases/download/llvmorg-$llvm_version/clang+llvm-$llvm_version-x86_64-pc-windows-msvc.tar.xz"
+    Invoke-WebRequest -Uri $url -OutFile llvm.tar.xz
+    tar -xzf llvm.tar.xz
+    mkdir -p "$root/~build/llvm_install"
+    Move-Item "clang+llvm-$llvm_version-x86_64-pc-windows-msvc/*" "$root/~build/llvm_install"
+    Get-ChildItem "$root/~build/llvm_install"
+    $env:PATH = "$(Get-Location)\~build\llvm_install\bin;" + $env:PATH
+    #llvm-config --version
+
+    # workaround
+    mkdir -p "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\DIA SDK\lib\amd64"
+    Copy-Item "$env:VSINSTALLDIR\DIA SDK\lib\amd64\diaguids.lib" "C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\DIA SDK\lib\amd64\diaguids.lib"
+}
+
 function Build-FakePDB(){
     if ($generate_msvc -eq $true) {
         cmake "./src_cpp/" `
@@ -192,6 +212,9 @@ function Build(){
 
     if($true -eq $build_llvm){
         Build-LLVM
+    }
+    elseif($true -eq $install_llvm){
+        Install-LLVM
     }
 
     Build-FakePDB
