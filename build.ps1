@@ -4,7 +4,7 @@
 # Config
 #
 
-$build_llvm = $true
+$build_llvm = $false
 $generate_msvc = $false
 
 #
@@ -30,15 +30,15 @@ function Get-OS()
         return "windows"
     }
 
-    if($PSVersionTable.OS.StartsWith("Linux"))
+    if(Get-Command "uname" -errorAction SilentlyContinue)
     {
-        return "linux"
+        return "$(uname -s)".ToLower()
     }
 
     return "unknown"
 }
 
-
+# the return value needs to match Python's platform.machine().lower()
 function Get-Architecture()
 {
     $os = Get-OS
@@ -55,17 +55,15 @@ function Get-Architecture()
             {
                 return "i686"
             }
-        }
-    }
-    elseif($os -eq "linux")
-    {
-        switch ($(uname -m))
-        {
-            x86_64
+            ARM64
             {
-                return "amd64"
+                return "arm64"
             }
         }
+    }
+    elseif(Get-Command "uname" -errorAction SilentlyContinue)
+    {
+        return "$(uname -m)".ToLower()
     }
 
     return "Unknown"
@@ -220,8 +218,8 @@ function Build(){
     #
     # Pack files
     #
-    Remove-Item -Path "./~build/deploy/fakepdb.zip" -ErrorAction SilentlyContinue
-    Compress-Archive -Path "./~build/deploy/*" -DestinationPath "./~build/deploy/fakepdb.zip"
+    Remove-Item -Path "./~build/fakepdb.zip" -ErrorAction SilentlyContinue
+    Compress-Archive -Path "./~build/deploy/*" -DestinationPath "./~build/fakepdb.zip"
       
 }
 

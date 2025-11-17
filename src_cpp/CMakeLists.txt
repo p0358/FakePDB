@@ -88,8 +88,7 @@ target_compile_definitions(fakepdb_common PUBLIC JSON_DIAGNOSTICS=1)
 target_include_directories(fakepdb_common PUBLIC src_common)
 target_include_directories(fakepdb_common PUBLIC ${LLVM_INCLUDE_DIRS})
 
-target_link_libraries(fakepdb_common PUBLIC ${llvm_libs})
-
+llvm_config(fakepdb_common USE_SHARED ${llvm_libs})
 
 
 #
